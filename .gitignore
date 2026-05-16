@@ -1,0 +1,6 @@
+go.sum
+tunylo
+*.test
+*.out
+vendor/
+.DS_Store
