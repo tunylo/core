@@ -84,6 +84,10 @@ func NamedLogPath(name string) (string, error) {
 	return filepath.Join(dir, "logs", name+".log"), nil
 }
 
+func BaseDir() (string, error) {
+	return baseDir()
+}
+
 func Load() (*Config, error) {
 	path, err := ConfigPath()
 	if err != nil {
