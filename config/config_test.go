@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -52,3 +53,38 @@ func TestLoadInvalidJSON(t *testing.T) {
 		t.Fatal("expected error parsing invalid JSON")
 	}
 }
+
+func TestNamedPidPath(t *testing.T) {
+	t.Setenv("HOME", t.TempDir())
+
+	path, err := NamedPidPath("myapp")
+	if err != nil {
+		t.Fatalf("NamedPidPath returned error: %v", err)
+	}
+	if !strings.HasSuffix(path, filepath.Join("pids", "myapp.pid")) {
+		t.Fatalf("unexpected pid path: %s", path)
+	}
+}
+
+func TestNamedLogPath(t *testing.T) {
+	t.Setenv("HOME", t.TempDir())
+
+	path, err := NamedLogPath("myapp")
+	if err != nil {
+		t.Fatalf("NamedLogPath returned error: %v", err)
+	}
+	if !strings.HasSuffix(path, filepath.Join("logs", "myapp.log")) {
+		t.Fatalf("unexpected log path: %s", path)
+	}
+}
+
+func TestNamedPathsAreDifferentPerName(t *testing.T) {
+	t.Setenv("HOME", t.TempDir())
+
+	a, _ := NamedPidPath("alpha")
+	b, _ := NamedPidPath("beta")
+	if a == b {
+		t.Fatal("different names should produce different pid paths")
+	}
+}
+
