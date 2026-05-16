@@ -52,6 +52,22 @@ func NpmPackageDir(pkg string) (string, error) {
 	return filepath.Join(dir, "npm", pkg, "node_modules", ".bin"), nil
 }
 
+func PidPath() (string, error) {
+	dir, err := baseDir()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(dir, "tunylo.pid"), nil
+}
+
+func LogPath() (string, error) {
+	dir, err := baseDir()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(dir, "tunylo.log"), nil
+}
+
 func Load() (*Config, error) {
 	path, err := ConfigPath()
 	if err != nil {
