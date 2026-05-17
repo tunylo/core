@@ -10,7 +10,8 @@ import (
 )
 
 type Config struct {
-	DefaultTunnel *string `json:"default_tunnel,omitempty"`
+	DefaultTunnel *string           `json:"default_tunnel,omitempty"`
+	TunnelTokens  map[string]string `json:"tunnel_tokens,omitempty"`
 }
 
 func baseDir() (string, error) {

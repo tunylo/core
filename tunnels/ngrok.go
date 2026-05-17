@@ -75,8 +75,30 @@ func (t *NgrokTunnel) Install() error {
 
 func (t *NgrokTunnel) Configure(cfg *config.Config) error {
 	color.New(color.Bold).Println("ngrok configuration")
-	color.HiBlack("ngrok requires an auth token. Sign up free at https://ngrok.com")
-	color.HiBlack("Then run: ngrok config add-authtoken <YOUR_TOKEN>")
+	token := ""
+	if cfg.TunnelTokens != nil {
+		token = cfg.TunnelTokens["ngrok"]
+	}
+	if token == "" {
+		color.HiBlack("No auth token provided. Sign up free at https://ngrok.com")
+		color.HiBlack("Run: tunylo configure --token <YOUR_TOKEN> to save it.")
+		return nil
+	}
+	binary, err := exec.LookPath(t.BinaryPath())
+	if err != nil {
+		binary, err = exec.LookPath(t.BinaryName())
+		if err != nil {
+			color.HiBlack("ngrok binary not found; token saved, will be applied on first run.")
+			return nil
+		}
+	}
+	cmd := exec.Command(binary, "config", "add-authtoken", token)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("failed to apply ngrok auth token: %w", err)
+	}
+	color.Green("ngrok auth token applied.")
 	return nil
 }
 
@@ -90,7 +112,16 @@ func (t *NgrokTunnel) Start(host string, port uint16) (*TunnelProcess, error) {
 	}
 
 	addr := fmt.Sprintf("%s:%d", host, port)
-	cmd := newCmd(binary, "http", addr)
+	args := []string{"http", addr}
+
+	cfg, _ := config.Load()
+	if cfg != nil && cfg.TunnelTokens != nil {
+		if token := cfg.TunnelTokens["ngrok"]; token != "" {
+			args = append(args, "--authtoken", token)
+		}
+	}
+
+	cmd := newCmd(binary, args...)
 
 	if err := cmd.Start(); err != nil {
 		return nil, fmt.Errorf("failed to start ngrok: %w", err)
