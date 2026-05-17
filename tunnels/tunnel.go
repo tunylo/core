@@ -55,5 +55,6 @@ func defaultUninstall(binaryPath string) error {
 func AllTunnels() []Tunnel {
 	return []Tunnel{
 		&CloudflareTunnel{},
+		&NgrokTunnel{},
 	}
 }
