@@ -3,8 +3,8 @@ package server
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -188,10 +188,9 @@ func TestHandleRequest_WithValidSession(t *testing.T) {
 	}))
 	defer backend.Close()
 
-	var backendPort uint16
-	fmt.Sscanf(backend.URL[len("http://127.0.0.1:"):], "%d", &backendPort)
+	backendAddr := backend.Listener.Addr().(*net.TCPAddr)
 
-	p, err := New("secret", "127.0.0.1", backendPort)
+	p, err := New("secret", backendAddr.IP.String(), uint16(backendAddr.Port))
 	if err != nil {
 		t.Fatal(err)
 	}

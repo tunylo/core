@@ -38,7 +38,7 @@ type Proxy struct {
 }
 
 func New(passcode, targetHost string, targetPort uint16) (*Proxy, error) {
-	u, err := url.Parse(fmt.Sprintf("http://%s:%d", targetHost, targetPort))
+	u, err := url.Parse("http://" + net.JoinHostPort(targetHost, fmt.Sprintf("%d", targetPort)))
 	if err != nil {
 		return nil, fmt.Errorf("invalid target: %w", err)
 	}
