@@ -72,7 +72,7 @@ func (t *CloudflareTunnel) Install() error {
 	}
 
 	outPath := t.BinaryPath()
-	if err := installFromURL(url, isTgz, outPath); err != nil {
+	if err := installFromURL(url, isTgz, t.BinaryName(), outPath); err != nil {
 		return err
 	}
 
@@ -85,7 +85,7 @@ func (t *CloudflareTunnel) Install() error {
 
 func (t *CloudflareTunnel) ConfigFields() []ConfigField { return nil }
 
-func installFromURL(url string, isTgz bool, outPath string) error {
+func installFromURL(url string, isTgz bool, binaryName, outPath string) error {
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return err
@@ -103,7 +103,7 @@ func installFromURL(url string, isTgz bool, outPath string) error {
 	}
 
 	if isTgz {
-		if err := extractTgz(resp.Body, "cloudflared", outPath); err != nil {
+		if err := extractTgz(resp.Body, binaryName, outPath); err != nil {
 			return fmt.Errorf("failed to extract binary: %w", err)
 		}
 		return nil

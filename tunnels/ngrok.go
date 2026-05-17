@@ -60,7 +60,7 @@ func (t *NgrokTunnel) Install() error {
 	}
 
 	outPath := t.BinaryPath()
-	if err := installFromURL(url, true, outPath); err != nil {
+	if err := installFromURL(url, true, t.BinaryName(), outPath); err != nil {
 		return fmt.Errorf("failed to install ngrok: %w", err)
 	}
 	if err := os.Chmod(outPath, 0o755); err != nil {

@@ -145,7 +145,7 @@ func TestCloudflareTunnel_Install_BadStatus(t *testing.T) {
 	dir := t.TempDir()
 	fakeBin := filepath.Join(dir, "cloudflared")
 
-	err := installFromURL(srv.URL, false, fakeBin)
+	err := installFromURL(srv.URL, false, "cloudflared", fakeBin)
 	if err == nil {
 		t.Fatal("expected error on non-200 response")
 	}
@@ -165,7 +165,7 @@ func TestCloudflareTunnel_Install_PlainBinary(t *testing.T) {
 	dir := t.TempDir()
 	fakeBin := filepath.Join(dir, "cloudflared")
 
-	if err := installFromURL(srv.URL, false, fakeBin); err != nil {
+	if err := installFromURL(srv.URL, false, "cloudflared", fakeBin); err != nil {
 		t.Fatalf("install: %v", err)
 	}
 	got, _ := os.ReadFile(fakeBin)
