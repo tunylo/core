@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"net/http"
 	"time"
-
-	"github.com/fatih/color"
 )
 
 type responseRecorder struct {
@@ -25,30 +23,32 @@ func (r *responseRecorder) Write(b []byte) (int, error) {
 	return n, err
 }
 
-func requestLogger(next http.Handler) http.Handler {
+// RequestEvent holds details about a single proxied request.
+type RequestEvent struct {
+	Method  string
+	Path    string
+	Status  int
+	Bytes   int
+	Latency time.Duration
+	IP      string
+}
+
+func requestLogger(next http.Handler, onRequest func(RequestEvent)) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 		rec := &responseRecorder{ResponseWriter: w, status: http.StatusOK}
 		next.ServeHTTP(rec, r)
-		printRequest(r.Method, r.URL.Path, rec.status, rec.bytes, time.Since(start), clientIP(r))
+		if onRequest != nil {
+			onRequest(RequestEvent{
+				Method:  r.Method,
+				Path:    r.URL.Path,
+				Status:  rec.status,
+				Bytes:   rec.bytes,
+				Latency: time.Since(start),
+				IP:      clientIP(r),
+			})
+		}
 	})
-}
-
-func printRequest(method, path string, status, bytes int, dur time.Duration, ip string) {
-	statusColor := color.GreenString
-	if status >= 400 && status < 500 {
-		statusColor = color.YellowString
-	} else if status >= 500 {
-		statusColor = color.RedString
-	}
-	fmt.Printf("  %s %s %s %s %s %s\n",
-		color.HiBlackString(ip),
-		color.CyanString(method),
-		path,
-		statusColor(fmt.Sprintf("%d", status)),
-		color.HiBlackString(formatBytes(bytes)),
-		color.HiBlackString(dur.Round(time.Millisecond).String()),
-	)
 }
 
 func formatBytes(n int) string {

@@ -10,8 +10,27 @@ import (
 )
 
 type Config struct {
-	DefaultTunnel *string           `json:"default_tunnel,omitempty"`
-	TunnelTokens  map[string]string `json:"tunnel_tokens,omitempty"`
+	DefaultTunnel *string                      `json:"default_tunnel,omitempty"`
+	TunnelConfig  map[string]map[string]string `json:"tunnel_config,omitempty"`
+}
+
+// TunnelValue returns a stored config value for a given tunnel key and field name.
+func (c *Config) TunnelValue(tunnelKey, field string) string {
+	if c.TunnelConfig == nil {
+		return ""
+	}
+	return c.TunnelConfig[tunnelKey][field]
+}
+
+// SetTunnelValue stores a config value for a given tunnel key and field name.
+func (c *Config) SetTunnelValue(tunnelKey, field, value string) {
+	if c.TunnelConfig == nil {
+		c.TunnelConfig = make(map[string]map[string]string)
+	}
+	if c.TunnelConfig[tunnelKey] == nil {
+		c.TunnelConfig[tunnelKey] = make(map[string]string)
+	}
+	c.TunnelConfig[tunnelKey][field] = value
 }
 
 func baseDir() (string, error) {

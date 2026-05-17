@@ -9,7 +9,6 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/fatih/color"
 	"github.com/tunylo/core/config"
 )
 
@@ -51,7 +50,6 @@ func (t *NgrokTunnel) downloadURL() string {
 
 func (t *NgrokTunnel) Install() error {
 	url := t.downloadURL()
-	color.HiBlack("Downloading ngrok from %s", url)
 
 	binDir, err := config.BinDir()
 	if err != nil {
@@ -68,37 +66,32 @@ func (t *NgrokTunnel) Install() error {
 	if err := os.Chmod(outPath, 0o755); err != nil {
 		return err
 	}
-
-	color.Green("ngrok installed successfully.")
 	return nil
 }
 
-func (t *NgrokTunnel) Configure(cfg *config.Config) error {
-	color.New(color.Bold).Println("ngrok configuration")
-	token := ""
-	if cfg.TunnelTokens != nil {
-		token = cfg.TunnelTokens["ngrok"]
+func (t *NgrokTunnel) ConfigFields() []ConfigField {
+	return []ConfigField{
+		{Key: "authtoken", Label: "Auth token", Secret: true, Required: false},
 	}
+}
+
+func (t *NgrokTunnel) Configure(cfg *config.Config) error {
+	token := cfg.TunnelValue("ngrok", "authtoken")
 	if token == "" {
-		color.HiBlack("No auth token provided. Sign up free at https://ngrok.com")
-		color.HiBlack("Run: tunylo configure --token <YOUR_TOKEN> to save it.")
 		return nil
 	}
 	binary, err := exec.LookPath(t.BinaryPath())
 	if err != nil {
 		binary, err = exec.LookPath(t.BinaryName())
 		if err != nil {
-			color.HiBlack("ngrok binary not found; token saved, will be applied on first run.")
+			// Binary not installed yet; token is saved and will be applied on first run.
 			return nil
 		}
 	}
 	cmd := exec.Command(binary, "config", "add-authtoken", token)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("failed to apply ngrok auth token: %w", err)
 	}
-	color.Green("ngrok auth token applied.")
 	return nil
 }
 
@@ -115,10 +108,8 @@ func (t *NgrokTunnel) Start(host string, port uint16) (*TunnelProcess, error) {
 	args := []string{"http", addr}
 
 	cfg, _ := config.Load()
-	if cfg != nil && cfg.TunnelTokens != nil {
-		if token := cfg.TunnelTokens["ngrok"]; token != "" {
-			args = append(args, "--authtoken", token)
-		}
+	if token := cfg.TunnelValue("ngrok", "authtoken"); token != "" {
+		args = append(args, "--authtoken", token)
 	}
 
 	cmd := newCmd(binary, args...)

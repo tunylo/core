@@ -17,6 +17,7 @@ type Options struct {
 	Passcode      string
 	OnInstall     func(label string)
 	OnBeforeStart func(label string)
+	OnRequest     func(server.RequestEvent)
 }
 
 type Result struct {
@@ -69,6 +70,7 @@ func Run(ctx context.Context, opts Options) (*Result, error) {
 		if err != nil {
 			return nil, fmt.Errorf("creating proxy: %w", err)
 		}
+		p.OnRequest = opts.OnRequest
 		proxyPort, err = p.Start(ctx)
 		if err != nil {
 			return nil, fmt.Errorf("starting proxy: %w", err)

@@ -28,12 +28,13 @@ type attempt struct {
 }
 
 type Proxy struct {
-	passcode string
-	token    string
-	rp       *httputil.ReverseProxy
-	srv      *http.Server
-	mu       sync.Mutex
-	attempts map[string]*attempt
+	passcode  string
+	token     string
+	rp        *httputil.ReverseProxy
+	srv       *http.Server
+	mu        sync.Mutex
+	attempts  map[string]*attempt
+	OnRequest func(RequestEvent)
 }
 
 func New(passcode, targetHost string, targetPort uint16) (*Proxy, error) {
@@ -59,13 +60,19 @@ func New(passcode, targetHost string, targetPort uint16) (*Proxy, error) {
 	mux.HandleFunc("/", p.handleRequest)
 
 	p.srv = &http.Server{
-		Handler:      requestLogger(mux),
+		Handler:      requestLogger(mux, func(e RequestEvent) { p.onRequest(e) }),
 		ReadTimeout:  15 * time.Second,
 		WriteTimeout: 60 * time.Second,
 		IdleTimeout:  120 * time.Second,
 	}
 
 	return p, nil
+}
+
+func (p *Proxy) onRequest(e RequestEvent) {
+	if p.OnRequest != nil {
+		p.OnRequest(e)
+	}
 }
 
 func (p *Proxy) Start(ctx context.Context) (int, error) {

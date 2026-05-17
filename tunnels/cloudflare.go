@@ -12,7 +12,6 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/fatih/color"
 	"github.com/tunylo/core/config"
 )
 
@@ -63,7 +62,6 @@ func (t *CloudflareTunnel) downloadURL() (string, bool) {
 
 func (t *CloudflareTunnel) Install() error {
 	url, isTgz := t.downloadURL()
-	color.HiBlack("Downloading cloudflared from %s", url)
 
 	binDir, err := config.BinDir()
 	if err != nil {
@@ -82,9 +80,10 @@ func (t *CloudflareTunnel) Install() error {
 		return err
 	}
 
-	color.Green("cloudflared installed successfully.")
 	return nil
 }
+
+func (t *CloudflareTunnel) ConfigFields() []ConfigField { return nil }
 
 func installFromURL(url string, isTgz bool, outPath string) error {
 	req, err := http.NewRequest("GET", url, nil)
@@ -95,17 +94,17 @@ func installFromURL(url string, isTgz bool, outPath string) error {
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return fmt.Errorf("failed to download cloudflared: %w", err)
+		return fmt.Errorf("failed to download binary: %w", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("unexpected status %s downloading cloudflared", resp.Status)
+		return fmt.Errorf("unexpected status %s downloading binary", resp.Status)
 	}
 
 	if isTgz {
 		if err := extractTgz(resp.Body, "cloudflared", outPath); err != nil {
-			return fmt.Errorf("failed to extract cloudflared: %w", err)
+			return fmt.Errorf("failed to extract binary: %w", err)
 		}
 		return nil
 	}
@@ -116,15 +115,12 @@ func installFromURL(url string, isTgz bool, outPath string) error {
 	}
 	defer f.Close()
 	if _, err := io.Copy(f, resp.Body); err != nil {
-		return fmt.Errorf("failed to write cloudflared binary: %w", err)
+		return fmt.Errorf("failed to write binary: %w", err)
 	}
 	return nil
 }
 
 func (t *CloudflareTunnel) Configure(cfg *config.Config) error {
-	color.New(color.Bold).Println("Cloudflare Tunnel configuration")
-	color.HiBlack("Quick tunnels require no account. For persistent tunnels, run:\n  cloudflared tunnel login")
-	color.Green("No additional configuration needed for quick tunnels.")
 	return nil
 }
 

@@ -246,7 +246,7 @@ func TestRequestLogger_CapturesStatus(t *testing.T) {
 	handler := requestLogger(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusTeapot)
 		w.Write([]byte("teapot"))
-	}))
+	}), nil)
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/brew", nil)
 	handler.ServeHTTP(w, r)
@@ -259,7 +259,7 @@ func TestRequestLogger_PassesBodyThrough(t *testing.T) {
 	body := []byte("response body")
 	handler := requestLogger(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Write(body)
-	}))
+	}), nil)
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/", nil)
 	handler.ServeHTTP(w, r)

@@ -13,6 +13,14 @@ type TunnelProcess struct {
 	Cmd       *exec.Cmd
 }
 
+// ConfigField describes a configuration value a tunnel requires.
+type ConfigField struct {
+	Key      string
+	Label    string
+	Secret   bool
+	Required bool
+}
+
 type Tunnel interface {
 	Label() string
 	Key() string
@@ -20,6 +28,7 @@ type Tunnel interface {
 	BinaryPath() string
 	IsInstalled() bool
 	Install() error
+	ConfigFields() []ConfigField
 	Configure(cfg *config.Config) error
 	Start(host string, port uint16) (*TunnelProcess, error)
 	Uninstall() error
